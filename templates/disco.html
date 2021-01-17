@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=Edge">
+
+
+
+
+<title>Disco - An augmented insights project</title>
+
+
+<!-- JQuery stuff -->
+
+<link type="text/css" href="static/css/jquery-ui.css" rel="stylesheet">
+<link type="text/css" href="static/css/bootstrap.min.css" rel="stylesheet">
+
+<script type="text/javascript" async="" src="static/disco/analytics.js"></script>
+<script id="facebook-jssdk" src="static/disco/sdk.js"></script>
+<script type="text/javascript" src="static/disco/jquery-1.12.1.min.js"></script>
+<script type="text/javascript" src="static/disco/jquery-ui-1.10.2.min.js"></script>
+<script type="text/javascript" src="static/disco/jquery.mousewheel.js"></script>
+<script type="text/javascript" src="static/disco/jquery.globalize.js"></script>
+<script type="text/javascript" src="static/js/html2canvas.min.js"></script>
+
+<!---
+  jQuery style overrides:
+   - .ui-widget, smaller default size for widget text
+   - .dialog-drop-shadow, drop shadow for dialogs
+   - #tabs.ui-widget-content, remove border from #tabs tab block
+   - ui-datepicker-trigger, align datepicker icon to input field center
+-->
+
+<style>
+  .ui-widget {
+    font-size: 11px;
+  }
+  .dialog-drop-shadow {
+    -moz-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+    -webkit-box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+    box-shadow: 3px 3px 5px rgba(0, 0, 0, 0.5);
+  }
+  #tabs.ui-widget-content {
+    border: none;
+  }
+  .ui-tabs .ui-tabs-panel {
+    background-color: #ffffff;
+  }
+  .ui-datepicker-trigger {
+    vertical-align: bottom;
+    margin-bottom: 2px;
+    margin-left: 2px;
+  }
+
+.links line {
+  stroke: #999;
+  stroke-opacity: 0.6;
+}
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+text {
+  font-family: sans-serif;
+  font-size: 10px;
+}
+/*
+#upper_right_button {
+   line-height: 12px;
+   margin-top: 1px;
+   margin-right: 2px;
+   position:absolute;
+   top:20px;
+   right:20px;
+   border: 1px solid gray;
+   color: gray;
+   background-color: white;
+   padding: 6px 18px;
+   border-radius: 8px;
+   font-size: 13px;
+   font-weight: bold;
+}
+#upper_right {
+    position: relative;
+    background-color: #cccccc;
+}
+#upper_right a {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}*/
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 700px; /* Could be more or less, depending on screen size */
+    height: 380px;
+}
+
+/* The Close Button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+</style>
+
+<!-- LinkedIn stuff -->
+<!--
+<script type="text/javascript" src="http://platform.linkedin.com/in.js">
+  api_key: 77362vtghai4ag
+  onLoad: linkedin_init_sdk
+  scope: r_fullprofile r_network
+  authorize: true
+</script>
+-->
+
+<!-- highcharts stuff -->
+<script type="text/javascript" src="static/disco/highcharts-4.3.2.js"></script>
+<!-- qTip tooltips -->
+<link type="text/css" href="static/css/jquery.qtip-2.0.1.css" rel="stylesheet">
+<script type="text/javascript" src="static/disco/jquery.qtip-2.0.1.js"></script>
+<!--
+  qTip style overrides:
+   - .ui-tooltip-content, change default font size and line spacing
+-->
+<style>
+  .qtip-content {
+    font-size: 10pt;
+    line-height: 1.2
+  }
+  .qtip {
+    max-width: 500px;
+  }
+</style>
+
+<!-- numericjs linear algebra library -->
+<script type="text/javascript" src="static/disco/numeric-1.2.6.min.js"></script>
+<!-- moment date formatting -->
+<script type="text/javascript" src="static/disco/moment.min.js"></script>
+<!-- font-awesome SVG fonts for alert_dlg -->
+<link type="text/css" href="static/css/font-awesome.css" rel="stylesheet">
+<!-- d3 visualization library -->
+<script type="text/javascript" src="static/disco/d3-3.5.16.js"></script>
+<script type="text/javascript" src="static/disco/d3.layout.cloud.js"></script>
+<!-- dataTable library -->
+<link type="text/css" href="static/css/dataTables-1.10.11.jqueryui.css" rel="stylesheet">
+<script type="text/javascript" src="static/disco/dataTables-1.10.11.jquery.js"></script>
+<script type="text/javascript" src="static/disco/dataTables-1.10.11.jqueryui.js"></script>
+
+<style>
+<!--
+  table.dataTable tr.even.highlight {
+    background-color: #dbe871;
+  }
+  table.dataTable tr.odd.highlight {
+    background-color: #dbe871;
+  }
+
+  .tbl_nowrap { white-space: nowrap; }
+-->
+</style>
+
+
+<!-- Javascript source -->
+
+<!-- Define all the config and global variables first -->
+<script type="text/javascript" src="static/disco/config.js"></script>
+<script type="text/javascript" src="static/disco/disco-global-var.js"></script>
+
+<script type="text/javascript" src="static/disco/disco_affinity.js"></script>
+<script type="text/javascript" src="static/disco/alert_dlg.js"></script>
+<script type="text/javascript" src="static/disco/disco_anew.js"></script>
+<script type="text/javascript" src="static/disco/disco_anew_ex.js"></script>
+<script type="text/javascript" src="static/disco/disco_anew_neg.js"></script>
+<script type="text/javascript" src="static/disco/cloud.js"></script>
+<script type="text/javascript" src="static/disco/colour.js"></script>
+<script type="text/javascript" src="static/disco/disco_draw.js"></script>
+<!--
+<script type="text/javascript" src="canvas-js/dt_rng_dlg.js"></script>
+<script type="text/javascript" src="canvas-js/dt_tm_dlg.js"></script>
+-->
+<script type="text/javascript" src="static/disco/dup.js"></script>
+<script type="text/javascript" src="static/disco/export.js"></script>
+<script type="text/javascript" src="static/disco/fb.js"></script>
+<script type="text/javascript" src="static/disco/disco_happiness.js"></script>
+<script type="text/javascript" src="static/disco/heat_map.js"></script>
+<script type="text/javascript" src="static/disco/disco_html.js"></script>
+<script type="text/javascript" src="static/disco/import_url.js"></script>
+<script type="text/javascript" src="static/disco/disco_info_dlg.js"></script>
+<script type="text/javascript" src="static/disco/map.js"></script>
+<script type="text/javascript" src="static/disco/mst.js"></script>
+<script type="text/javascript" src="static/disco/disco_neg.js"></script>
+<script type="text/javascript" src="static/disco/porter.js"></script>
+<script type="text/javascript" src="static/disco/pos_trim.js"></script>
+<script type="text/javascript" src="static/disco/disco_query.js"></script>
+<script type="text/javascript" src="static/disco/disco_scatterplot.js"></script>
+<script type="text/javascript" src="static/disco/tfidf.js"></script>
+<script type="text/javascript" src="static/disco/timeline.js"></script>
+<script type="text/javascript" src="static/disco/topic.js"></script>
+<script type="text/javascript" src="static/disco/tw_list.js"></script>
+<script type="text/javascript" src="static/disco/uniq.js"></script>
+<script type="text/javascript" src="static/disco/zoom_dlg.js"></script>
+
+<!--
+<script type="text/javascript" src="canvas-js/linkedin.js"></script>
+-->
+
+<!--
+  mds.js and narrative.js must come after tfidf.js, because they use
+  global variable dissim, which is declared in tfidf.js
+-->
+
+<script type="text/javascript" src="static/disco/mds.js"></script>
+<script type="text/javascript" src="static/disco/narrative.js"></script>
+<style type="text/css">.fb_hidden{position:absolute;top:-10000px;z-index:10001}.fb_reposition{overflow:hidden;position:relative}.fb_invisible{display:none}.fb_reset{background:none;border:0;border-spacing:0;color:#000;cursor:auto;direction:ltr;font-family:"lucida grande", tahoma, verdana, arial, sans-serif;font-size:11px;font-style:normal;font-variant:normal;font-weight:normal;letter-spacing:normal;line-height:1;margin:0;overflow:visible;padding:0;text-align:left;text-decoration:none;text-indent:0;text-shadow:none;text-transform:none;visibility:visible;white-space:normal;word-spacing:normal}.fb_reset>div{overflow:hidden}.fb_link img{border:none}@keyframes fb_transform{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}.fb_animate{animation:fb_transform .3s forwards}
+.fb_dialog{background:rgba(82, 82, 82, .7);position:absolute;top:-10000px;z-index:10001}.fb_reset .fb_dialog_legacy{overflow:visible}.fb_dialog_advanced{padding:10px;border-radius:8px}.fb_dialog_content{background:#fff;color:#333}.fb_dialog_close_icon{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 0 transparent;cursor:pointer;display:block;height:15px;position:absolute;right:18px;top:17px;width:15px}.fb_dialog_mobile .fb_dialog_close_icon{top:5px;left:5px;right:auto}.fb_dialog_padding{background-color:transparent;position:absolute;width:1px;z-index:-1}.fb_dialog_close_icon:hover{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -15px transparent}.fb_dialog_close_icon:active{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yq/r/IE9JII6Z1Ys.png) no-repeat scroll 0 -30px transparent}.fb_dialog_loader{background-color:#f5f6f7;border:1px solid #606060;font-size:24px;padding:20px}.fb_dialog_top_left,.fb_dialog_top_right,.fb_dialog_bottom_left,.fb_dialog_bottom_right{height:10px;width:10px;overflow:hidden;position:absolute}.fb_dialog_top_left{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 0;left:-10px;top:-10px}.fb_dialog_top_right{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -10px;right:-10px;top:-10px}.fb_dialog_bottom_left{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -20px;bottom:-10px;left:-10px}.fb_dialog_bottom_right{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ye/r/8YeTNIlTZjm.png) no-repeat 0 -30px;right:-10px;bottom:-10px}.fb_dialog_vert_left,.fb_dialog_vert_right,.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{position:absolute;background:#525252;filter:alpha(opacity=70);opacity:.7}.fb_dialog_vert_left,.fb_dialog_vert_right{width:10px;height:100%}.fb_dialog_vert_left{margin-left:-10px}.fb_dialog_vert_right{right:0;margin-right:-10px}.fb_dialog_horiz_top,.fb_dialog_horiz_bottom{width:100%;height:10px}.fb_dialog_horiz_top{margin-top:-10px}.fb_dialog_horiz_bottom{bottom:0;margin-bottom:-10px}.fb_dialog_iframe{line-height:0}.fb_dialog_content .dialog_title{background:#6d84b4;border:1px solid #365899;color:#fff;font-size:14px;font-weight:bold;margin:0}.fb_dialog_content .dialog_title>span{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/yd/r/Cou7n-nqK52.gif) no-repeat 5px 50%;float:left;padding:5px 0 7px 26px}body.fb_hidden{-webkit-transform:none;height:100%;margin:0;overflow:visible;position:absolute;top:-10000px;left:0;width:100%}.fb_dialog.fb_dialog_mobile.loading{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/ya/r/3rhSv5V8j3o.gif) white no-repeat 50% 50%;min-height:100%;min-width:100%;overflow:hidden;position:absolute;top:0;z-index:10001}.fb_dialog.fb_dialog_mobile.loading.centered{width:auto;height:auto;min-height:initial;min-width:initial;background:none}.fb_dialog.fb_dialog_mobile.loading.centered #fb_dialog_loader_spinner{width:100%}.fb_dialog.fb_dialog_mobile.loading.centered .fb_dialog_content{background:none}.loading.centered #fb_dialog_loader_close{color:#fff;display:block;padding-top:20px;clear:both;font-size:18px}#fb-root #fb_dialog_ipad_overlay{background:rgba(0, 0, 0, .45);position:absolute;bottom:0;left:0;right:0;top:0;width:100%;min-height:100%;z-index:10000}#fb-root #fb_dialog_ipad_overlay.hidden{display:none}.fb_dialog.fb_dialog_mobile.loading iframe{visibility:hidden}.fb_dialog_mobile .fb_dialog_iframe{position:-webkit-sticky;top:0}.fb_dialog_content .dialog_header{-webkit-box-shadow:white 0 1px 1px -1px inset;background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#738ABA), to(#2C4987));border-bottom:1px solid;border-color:#1d4088;color:#fff;font:14px Helvetica, sans-serif;font-weight:bold;text-overflow:ellipsis;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0;vertical-align:middle;white-space:nowrap}.fb_dialog_content .dialog_header table{-webkit-font-smoothing:subpixel-antialiased;height:43px;width:100%}.fb_dialog_content .dialog_header td.header_left{font-size:12px;padding-left:5px;vertical-align:middle;width:60px}.fb_dialog_content .dialog_header td.header_right{font-size:12px;padding-right:5px;vertical-align:middle;width:60px}.fb_dialog_content .touchable_button{background:-webkit-gradient(linear, 0% 0%, 0% 100%, from(#4966A6), color-stop(.5, #355492), to(#2A4887));border:1px solid #29487d;-webkit-background-clip:padding-box;-webkit-border-radius:3px;-webkit-box-shadow:rgba(0, 0, 0, .117188) 0 1px 1px inset, rgba(255, 255, 255, .167969) 0 1px 0;display:inline-block;margin-top:3px;max-width:85px;line-height:18px;padding:4px 12px;position:relative}.fb_dialog_content .dialog_header .touchable_button input{border:none;background:none;color:#fff;font:12px Helvetica, sans-serif;font-weight:bold;margin:2px -12px;padding:2px 6px 3px 6px;text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog_content .dialog_header .header_center{color:#fff;font-size:16px;font-weight:bold;line-height:18px;text-align:center;vertical-align:middle}.fb_dialog_content .dialog_content{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/y9/r/jKEcVPZFk-2.gif) no-repeat 50% 50%;border:1px solid #555;border-bottom:0;border-top:0;height:150px}.fb_dialog_content .dialog_footer{background:#f5f6f7;border:1px solid #555;border-top-color:#ccc;height:40px}#fb_dialog_loader_close{float:left}.fb_dialog.fb_dialog_mobile .fb_dialog_close_button{text-shadow:rgba(0, 30, 84, .296875) 0 -1px 0}.fb_dialog.fb_dialog_mobile .fb_dialog_close_icon{visibility:hidden}#fb_dialog_loader_spinner{animation:rotateSpinner 1.2s linear infinite;background-color:transparent;background-image:url(https://static.xx.fbcdn.net/rsrc.php/v3/yD/r/t-wz8gw1xG1.png);background-repeat:no-repeat;background-position:50% 50%;height:24px;width:24px}@keyframes rotateSpinner{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.fb_iframe_widget{display:inline-block;position:relative}.fb_iframe_widget span{display:inline-block;position:relative;text-align:justify}.fb_iframe_widget iframe{position:absolute}.fb_iframe_widget_fluid_desktop,.fb_iframe_widget_fluid_desktop span,.fb_iframe_widget_fluid_desktop iframe{max-width:100%}.fb_iframe_widget_fluid_desktop iframe{min-width:220px;position:relative}.fb_iframe_widget_lift{z-index:1}.fb_hide_iframes iframe{position:relative;left:-10000px}.fb_iframe_widget_loader{position:relative;display:inline-block}.fb_iframe_widget_fluid{display:inline}.fb_iframe_widget_fluid span{width:100%}.fb_iframe_widget_loader iframe{min-height:32px;z-index:2;zoom:1}.fb_iframe_widget_loader .FB_Loader{background:url(https://static.xx.fbcdn.net/rsrc.php/v3/y9/r/jKEcVPZFk-2.gif) no-repeat;height:32px;width:32px;margin-left:-16px;position:absolute;left:50%;z-index:4}
+.fb_customer_chat_bounce_in_v2{animation-duration:300ms;animation-name:fb_bounce_in_v2;transition-timing-function:ease-in}.fb_customer_chat_bounce_out_v2{animation-duration:300ms;animation-name:fb_bounce_out_v2;transition-timing-function:ease-in}.fb_customer_chat_bounce_in_v2_mobile_chat_started{animation-duration:300ms;animation-name:fb_bounce_in_v2_mobile_chat_started;transition-timing-function:ease-in}.fb_customer_chat_bounce_out_v2_mobile_chat_started{animation-duration:300ms;animation-name:fb_bounce_out_v2_mobile_chat_started;transition-timing-function:ease-in}.fb_customer_chat_bubble_pop_in{animation-duration:250ms;animation-name:fb_customer_chat_bubble_bounce_in_animation}.fb_customer_chat_bubble_animated_no_badge{box-shadow:0 3px 12px rgba(0, 0, 0, .15);transition:box-shadow 150ms linear}.fb_customer_chat_bubble_animated_no_badge:hover{box-shadow:0 5px 24px rgba(0, 0, 0, .3)}.fb_customer_chat_bubble_animated_with_badge{box-shadow:-5px 4px 14px rgba(0, 0, 0, .15);transition:box-shadow 150ms linear}.fb_customer_chat_bubble_animated_with_badge:hover{box-shadow:-5px 8px 24px rgba(0, 0, 0, .2)}.fb_invisible_flow{display:inherit;height:0;overflow-x:hidden;width:0}.fb_mobile_overlay_active{background-color:#fff;height:100%;overflow:hidden;position:fixed;visibility:hidden;width:100%}@keyframes fb_bounce_in_v2{0%{opacity:0;transform:scale(0, 0);transform-origin:bottom right}50%{transform:scale(1.03, 1.03);transform-origin:bottom right}100%{opacity:1;transform:scale(1, 1);transform-origin:bottom right}}@keyframes fb_bounce_in_v2_mobile_chat_started{0%{opacity:0;top:20px}100%{opacity:1;top:0}}@keyframes fb_bounce_out_v2{0%{opacity:1;transform:scale(1, 1);transform-origin:bottom right}100%{opacity:0;transform:scale(0, 0);transform-origin:bottom right}}@keyframes fb_bounce_out_v2_mobile_chat_started{0%{opacity:1;top:0}100%{opacity:0;top:20px}}@keyframes fb_customer_chat_bubble_bounce_in_animation{0%{bottom:6pt;opacity:0;transform:scale(0, 0);transform-origin:center}70%{bottom:18pt;opacity:1;transform:scale(1.2, 1.2)}100%{transform:scale(1, 1)}}</style>
+
+<!--script type="text/javascript" charset="UTF-8" src="static/disco/common.js"></script>
+<script type="text/javascript" charset="UTF-8" src="static/disco/util.js"></script>
+<script type="text/javascript" charset="UTF-8" src="static/disco/stats.js"></script-->
+
+</head>
+
+
+<!-- Body of page -->
+<body style="min-width: 930px; padding-left: 20px; padding-right: 20px;">
+<!-- Tweet bird image (left justified) plus title of page -->
+<div class="ui-widget">
+  <img style="float:left;width:150px;height:71px" src="/static/images/disco.png"><br>
+  <br style="clear: both;">
+</div>
+<!--div class="upper_right">
+  <button id="file_upload_btn">Upload data file</button>
+  <a href="/" class="upper_right_button" role="button">Upload</a>
+  <a id="btn-download" href="#" class="upper_right_button" role="button">Snap</a>
+</div-->
+
+
+<!-- The Modal -->
+<div id='dialog-page' title="Modal">
+</div>
+
+<!--div id="myModal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <img style="float: left;width:650px;height:304px" src="/static/images/fileupload_modal_window.jpg"><br>
+  </div>
+</div-->
+
+
+
+<!--div class="ui-widget">
+  <p>
+    We use a sentiment dictionary to estimate sentiment. We search
+    each tweet for words in the dictionary, then combine the words'
+    pleasure and arousal ratings to estimate sentiment for the entire
+    tweet. When you hover your mouse over a tweet's circle to see its
+    text, the words in our dictionary are shown in bold italics. You
+    can click on a tweet's circle to bring up a dialog that gives even
+    more information.
+  </p>
+</div-->
+<!-- Legend canvas and tweet visualization canvas -->
+
+<div style="white-space: nowrap;">
+  <div id="canvas-tab" style="white-space: nowrap;" class="ui-tabs ui-widget ui-widget-content ui-corner-all">
+    <ul class="ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all" role="tablist">
+      <li id="sentiment-lbl" class="ui-state-default ui-corner-top ui-tabs-active ui-state-active" role="tab" tabindex="0" aria-controls="sentiment-tab" aria-labelledby="ui-id-1" aria-selected="true"><a href="#sentiment-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-1">Sentiment</a></li>
+      <li id="topic-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="topic-tab" aria-labelledby="ui-id-2" aria-selected="false" style="display:none"><a href="#topic-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-2">Topics</a></li>
+      <li id="heatmap-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="heatmap-tab" aria-labelledby="ui-id-3" aria-selected="false" style="display:none"><a href="#heatmap-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-3">Heatmap</a></li>
+      <li id="cloud-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="cloud-tab" aria-labelledby="ui-id-4" aria-selected="false" style="display:none"><a href="#cloud-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-4">Tag Cloud</a></li>
+      <li id="timeline-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="timeline-tab" aria-labelledby="ui-id-5" aria-selected="false" style="display:none"><a href="#timeline-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-5">Timeline</a></li>
+      <li id="map-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="map-tab" aria-labelledby="ui-id-6" aria-selected="false" style="display:none"><a href="#map-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-6">Map</a></li>
+      <li id="affinity-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="affinity-tab" aria-labelledby="ui-id-7" aria-selected="false"><a href="#affinity-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-7">Affinity</a></li>
+      <li id="narrative-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="narrative-tab" aria-labelledby="ui-id-8" aria-selected="false" style="display:none"><a href="#narrative-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-8">Narrative</a></li>
+      <li id="tweet-lbl" class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tweet-tab" aria-labelledby="ui-id-9" aria-selected="false" style="display:none"><a href="#tweet-tab" class="ui-tabs-anchor" role="presentation" tabindex="-1" id="ui-id-9">Tweets</a></li>
+    </ul>
+    <div id="sentiment-tab" aria-labelledby="ui-id-1" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="true" aria-hidden="false">
+
+<!--  For a canvas element, "width" and "height" define the width and
+      height of the canvas's coordinate system, and style="width; height"
+      defines the width and height of the box holding the canvas; if you
+      use the style, CSS scales the canvas which we DO NOT WANT
+-->
+
+      <canvas id="tweet-legend" width="90" height="400" data-hasqtip="true"></canvas>
+      <canvas id="tweet-canvas" width="1253" height="400">
+        <p style="align: center">
+        This application requires IE 9, Firefox 3.6, Chrome 17.0, or Safari 5.0
+        </p>
+      </canvas>
+    </div>
+
+    <div id="topic-tab" aria-labelledby="ui-id-2" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+      <canvas id="topic-legend" width="90" height="400" data-hasqtip="true"></canvas>
+      <canvas id="topic-canvas" width="800" height="400">
+        <p style="align: center">
+        This application requires IE 9, Firefox 3.6, Chrome 17.0, or Safari 5.0
+        </p>
+      </canvas>
+    </div>
+
+    <div id="heatmap-tab" aria-labelledby="ui-id-3" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+      <canvas id="heatmap-legend" width="90" height="400" data-hasqtip="true"></canvas>
+      <canvas id="heatmap-canvas" width="800" height="400">
+        <p style="align: center">
+        This application requires IE 9, Firefox 3.6, Chrome 17.0, or Safari 5.0
+        </p>
+      </canvas>
+    </div>
+
+    <div id="cloud-tab" aria-labelledby="ui-id-4" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+      <div id="cloud-div">
+        <svg id="cloud-svg" xmlns="http://www.w3.org/2000/svg" width="900" height="400">
+        <g class="cloud-svg-00" transform="translate(225,100)"></g><g class="cloud-svg-01" transform="translate(675,100)"></g><g class="cloud-svg-02" transform="translate(225,300)"></g><g class="cloud-svg-03" transform="translate(675,300)"></g></svg>
+      </div>
+    </div>
+
+    <div id="timeline-tab" aria-labelledby="ui-id-5" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+      <div id="timeline-div" style="width: 100%; height: 403px;" data-highcharts-chart="0"><div class="highcharts-container" id="highcharts-0" style="position: relative; overflow: hidden; width: 1406px; height: 403px; text-align: left; line-height: normal; z-index: 0; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"><svg version="1.1" style="font-family:&quot;Lucida Grande&quot;, &quot;Lucida Sans Unicode&quot;, Arial, Helvetica, sans-serif;font-size:12px;" xmlns="http://www.w3.org/2000/svg" width="1406" height="403"><desc>Created with Highcharts 4.2.3</desc><defs><clippath id="highcharts-1"><rect x="0" y="0" width="1362" height="359"></rect></clippath></defs><rect x="0" y="0" width="1406" height="403" fill="#FFFFFF" class=" highcharts-background"></rect><g class="highcharts-grid" zIndex="1"></g><g class="highcharts-grid" zIndex="1"></g><g class="highcharts-axis" zIndex="2"><text x="715" zIndex="7" text-anchor="middle" transform="translate(0,0)" class=" highcharts-xaxis-title" style="color:#707070;fill:#707070;" y="386">Time</text><path fill="none" d="M 34 369.5 L 1396 369.5" stroke="#C0D0E0" stroke-width="1" zIndex="7"></path></g><g class="highcharts-axis" zIndex="2"><text x="24" zIndex="7" text-anchor="middle" transform="translate(0,0) rotate(270 24 189.5)" class=" highcharts-yaxis-title" style="color:#707070;fill:#707070;" y="189.5"><tspan>Tweet Count</tspan></text></g><g class="highcharts-series-group" zIndex="3"><g class="highcharts-series highcharts-series-0 highcharts-tracker" zIndex="0.1" transform="translate(34,10) scale(1 1)" style="" clip-path="url(#highcharts-1)"></g><g class="highcharts-markers highcharts-series-0" zIndex="0.1" transform="translate(34,10) scale(1 1)" clip-path="none"></g><g class="highcharts-series highcharts-series-1 highcharts-tracker" zIndex="0.1" transform="translate(34,10) scale(1 1)" style="" clip-path="url(#highcharts-1)"></g><g class="highcharts-markers highcharts-series-1" zIndex="0.1" transform="translate(34,10) scale(1 1)" clip-path="none"></g><g class="highcharts-series highcharts-series-2 highcharts-tracker" zIndex="0.1" transform="translate(34,10) scale(1 1)" style="" clip-path="url(#highcharts-1)"></g><g class="highcharts-markers highcharts-series-2" zIndex="0.1" transform="translate(34,10) scale(1 1)" clip-path="none"></g><g class="highcharts-series highcharts-series-3 highcharts-tracker" zIndex="0.1" transform="translate(34,10) scale(1 1)" style="" clip-path="url(#highcharts-1)"></g><g class="highcharts-markers highcharts-series-3" zIndex="0.1" transform="translate(34,10) scale(1 1)" clip-path="none"></g></g><g class="highcharts-legend" zIndex="7" transform="translate(60,10)"><rect x="0" y="0" width="337" height="25" fill="#ffffff" visibility="visible"></rect><g zIndex="1"><g><g class="highcharts-legend-item" zIndex="1" transform="translate(8,3)"><text x="21" style="color:#333333;font-size:12px;font-weight:bold;cursor:pointer;fill:#333333;" text-anchor="start" zIndex="2" y="15">Relaxed</text><rect x="0" y="4" width="16" height="12" zIndex="3" fill="rgb(67,155,112)"></rect></g><g class="highcharts-legend-item" zIndex="1" transform="translate(97.328125,3)"><text x="21" y="15" style="color:#333333;font-size:12px;font-weight:bold;cursor:pointer;fill:#333333;" text-anchor="start" zIndex="2">Happy</text><rect x="0" y="4" width="16" height="12" zIndex="3" fill="rgb(101,169,139)"></rect></g><g class="highcharts-legend-item" zIndex="1" transform="translate(177.640625,3)"><text x="21" y="15" style="color:#333333;font-size:12px;font-weight:bold;cursor:pointer;fill:#333333;" text-anchor="start" zIndex="2">Unhappy</text><rect x="0" y="4" width="16" height="12" zIndex="3" fill="rgb(62,145,206)"></rect></g><g class="highcharts-legend-item" zIndex="1" transform="translate(273.1875,3)"><text x="21" y="15" style="color:#333333;font-size:12px;font-weight:bold;cursor:pointer;fill:#333333;" text-anchor="start" zIndex="2">Upset</text><rect x="0" y="4" width="16" height="12" zIndex="3" fill="rgb(100,161,209)"></rect></g></g></g></g><g class="highcharts-axis-labels highcharts-xaxis-labels" zIndex="7"></g><g class="highcharts-axis-labels highcharts-yaxis-labels" zIndex="7"></g><g class="highcharts-tooltip" zIndex="8" style="cursor:default;padding:0;pointer-events:none;white-space:nowrap;" transform="translate(0,-9999)"><path fill="none" d="M 3.5 0.5 L 13.5 0.5 C 16.5 0.5 16.5 0.5 16.5 3.5 L 16.5 13.5 C 16.5 16.5 16.5 16.5 13.5 16.5 L 3.5 16.5 C 0.5 16.5 0.5 16.5 0.5 13.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" isShadow="true" stroke="black" stroke-opacity="0.049999999999999996" stroke-width="5" transform="translate(1, 1)"></path><path fill="none" d="M 3.5 0.5 L 13.5 0.5 C 16.5 0.5 16.5 0.5 16.5 3.5 L 16.5 13.5 C 16.5 16.5 16.5 16.5 13.5 16.5 L 3.5 16.5 C 0.5 16.5 0.5 16.5 0.5 13.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" isShadow="true" stroke="black" stroke-opacity="0.09999999999999999" stroke-width="3" transform="translate(1, 1)"></path><path fill="none" d="M 3.5 0.5 L 13.5 0.5 C 16.5 0.5 16.5 0.5 16.5 3.5 L 16.5 13.5 C 16.5 16.5 16.5 16.5 13.5 16.5 L 3.5 16.5 C 0.5 16.5 0.5 16.5 0.5 13.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5" isShadow="true" stroke="black" stroke-opacity="0.15" stroke-width="1" transform="translate(1, 1)"></path><path fill="rgba(249, 249, 249, .85)" d="M 3.5 0.5 L 13.5 0.5 C 16.5 0.5 16.5 0.5 16.5 3.5 L 16.5 13.5 C 16.5 16.5 16.5 16.5 13.5 16.5 L 3.5 16.5 C 0.5 16.5 0.5 16.5 0.5 13.5 L 0.5 3.5 C 0.5 0.5 0.5 0.5 3.5 0.5"></path><text x="8" zIndex="1" style="font-size:12px;color:#333333;fill:#333333;" y="20"></text></g></svg></div></div>
+    </div>
+
+<!--
+  For this div, since we need to use float: left; and float: right; to
+  float the legend and the map canvas, we also need an overflow:
+  hidden; in the container div to make sure the browser "sees" the
+  height of the two floating elements
+-->
+
+    <div id="map-tab" style="overflow: hidden; display: none;" aria-labelledby="ui-id-6" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true">
+      <canvas id="map-legend" width="90" height="400" style="float: left;">
+      </canvas>
+      <div id="map-div" style="width: 800px; height: 400px; float: right; border: 1px solid rgb(192,192,192);">
+      </div>
+    </div>
+
+    <div id="affinity-tab" aria-labelledby="ui-id-7" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+      <div id="affinity-div" style="width: 100%; height: 403px;">
+        <svg id="affinity-svg">
+          xmlns="http://www.w3.org/2000/svg" width="900" height="400"&gt;
+          <g id="edges">
+          </g>
+          <g id="nodes">
+          </g>
+        </svg>
+        <img id="affinity-spinner" style="display: none; position: absolute; bottom: 25px; right: 25px;" src="static/disco/ajax-loader.gif">
+      </div>
+    </div>
+
+<!--
+For the anchor tweet table, to get it to display properly it needs a
+width: 100%, but since it is given only 300 pixels, we need a wrapper
+div of that width to get the table width to show properly
+-->
+
+    <div id="narrative-tab" style="overflow: hidden; display: none;" aria-labelledby="ui-id-8" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true">
+      <div id="narrative-tbl-div" style="float: left; width: 300px;">
+        <div id="narrative-tbl_wrapper" class="dataTables_wrapper dt-jqueryui no-footer"><div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"><div id="narrative-tbl_filter" class="dataTables_filter"><label>Search:<input type="search" class="" placeholder="" aria-controls="narrative-tbl"></label></div></div><div class="dataTables_scroll"><div class="dataTables_scrollHead ui-state-default" style="overflow: hidden; position: relative; border: 0px; width: 100%;"><div class="dataTables_scrollHeadInner" style="box-sizing: content-box; width: 100px; padding-right: 0px;"><table class="display compact dataTable no-footer" style="width: 100px; white-space: normal; margin-left: 0px;" role="grid"><thead><tr role="row"><th class="ui-state-default sorting_disabled" rowspan="1" colspan="1" style="width: 0px;"><div class="DataTables_sort_wrapper">Tweet<span class="DataTables_sort_icon"></span></div></th></tr></thead></table></div></div><div class="dataTables_scrollBody" style="position: relative; overflow: auto; height: 309px; width: 100%;"><table id="narrative-tbl" class="display compact dataTable no-footer" style="width: 100%; white-space: normal;" role="grid" aria-describedby="narrative-tbl_info"><thead><tr role="row" style="height: 0px;"><th class="ui-state-default sorting_disabled" rowspan="1" colspan="1" style="padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px; width: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;"><div class="DataTables_sort_wrapper">Tweet<span class="DataTables_sort_icon"></span></div></div></th></tr></thead>
+        <tbody><tr class="odd"><td valign="top" colspan="0" class="dataTables_empty">No data available in table</td></tr></tbody></table></div></div><div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"><div class="dataTables_info" id="narrative-tbl_info" role="status" aria-live="polite">Showing 0 to 0 of 0 entries</div></div></div>
+      </div>
+      <div id="narrative-div" style="overflow: hidden; height: 400px;">
+        <svg id="narrative-svg" xmlns="http://www.w3.org/2000/svg" width="600" height="400">
+        </svg>
+      </div>
+    </div>
+
+    <div id="tweet-tab" aria-labelledby="ui-id-9" class="ui-tabs-panel ui-widget-content ui-corner-bottom" role="tabpanel" aria-expanded="false" aria-hidden="true" style="display: none;">
+      <div id="tweet-tbl-div">
+        <div id="tweet-tbl_wrapper" class="dataTables_wrapper dt-jqueryui no-footer"><div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-tl ui-corner-tr"><div id="tweet-tbl_filter" class="dataTables_filter"><label>Search:<input type="search" class="" placeholder="" aria-controls="tweet-tbl"></label></div></div><div class="dataTables_scroll"><div class="dataTables_scrollHead ui-state-default" style="overflow: hidden; position: relative; border: 0px; width: 100%;"><div class="dataTables_scrollHeadInner" style="box-sizing: content-box; width: 100px; padding-right: 0px;"><table class="display compact dataTable no-footer" style="white-space: normal; margin-left: 0px; width: 100px;" role="grid"><thead><tr role="row"><th class="tbl_nowrap sorting ui-state-default sorting_asc" tabindex="0" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px;" aria-sort="ascending" aria-label="Date: activate to sort column descending"><div class="DataTables_sort_wrapper">Date<span class="DataTables_sort_icon css_right ui-icon ui-icon-triangle-1-n"></span></div></th><th class="sorting ui-state-default" tabindex="0" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px;" aria-label="User: activate to sort column ascending"><div class="DataTables_sort_wrapper">User<span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></th><th class="sorting ui-state-default" tabindex="0" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px;" aria-label="v: activate to sort column ascending"><div class="DataTables_sort_wrapper"><i>v</i><span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></th><th class="sorting ui-state-default" tabindex="0" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px;" aria-label="a: activate to sort column ascending"><div class="DataTables_sort_wrapper"><i>a</i><span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></th><th class="sorting ui-state-default" tabindex="0" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px;" aria-label="Tweet: activate to sort column ascending"><div class="DataTables_sort_wrapper">Tweet<span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></th></tr></thead></table></div></div><div class="dataTables_scrollBody" style="position: relative; overflow: auto; height: 309px; width: 100%;"><table id="tweet-tbl" class="display compact dataTable no-footer" style="white-space: normal; width: 100%;" role="grid" aria-describedby="tweet-tbl_info"><thead><tr role="row" style="height: 0px;"><th class="tbl_nowrap ui-state-default sorting" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;"><div class="DataTables_sort_wrapper">Date<span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></div></th><th class="ui-state-default sorting" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;"><div class="DataTables_sort_wrapper">User<span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></div></th><th class="ui-state-default sorting" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;"><div class="DataTables_sort_wrapper"><i>v</i><span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></div></th><th class="ui-state-default sorting" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;"><div class="DataTables_sort_wrapper"><i>a</i><span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></div></th><th class="ui-state-default sorting" aria-controls="tweet-tbl" rowspan="1" colspan="1" style="width: 0px; padding-top: 0px; padding-bottom: 0px; border-top-width: 0px; border-bottom-width: 0px; height: 0px;"><div class="dataTables_sizing" style="height:0;overflow:hidden;"><div class="DataTables_sort_wrapper">Tweet<span class="DataTables_sort_icon css_right ui-icon ui-icon-carat-2-n-s"></span></div></div></th></tr></thead>
+        <tbody><tr class="odd"><td valign="top" colspan="0" class="dataTables_empty">No data available in table</td></tr></tbody></table></div></div><div class="fg-toolbar ui-toolbar ui-widget-header ui-helper-clearfix ui-corner-bl ui-corner-br"><div class="dataTables_info" id="tweet-tbl_info" role="status" aria-live="polite">Showing 0 to 0 of 0 entries</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Keyword label and input field, plus query button -->
+
+<div id="control-div">
+  <br style="clear: both;">
+  <div style="float: left;">
+  <p>
+  <a href="/" class="btn btn-success btn-sm fileinput-button btn-custom" role="button">Upload Data File</a>
+  <a id="btn-download" href="#" class="btn btn-success btn-sm fileinput-button btn-custom" role="button">Take Screenshot</a>
+  <!--input id="query-inp" size="50" type="text" data-hasqtip="true" oldtitle="Keywords:" title=""-->
+  <!--button id="query-btn" type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">Query</span></button-->
+  </p>
+  </div>
+
+  <!--div style="float: right;">
+    <p id="control-btn">
+      <span style="margin-right: 2px;">
+      <img id="fb-btn" alt="Logout" title="Logout" src="static/disco/fb.png" style="vertical-align: middle; display: none;">
+      </span>
+
+      <button id="zoom-btn" type="submit" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" role="button" aria-disabled="false" title="Zoom In"><span class="ui-button-icon-primary ui-icon ui-icon-zoomin"></span><span class="ui-button-text">Zoom In</span></button>
+    </p>
+  </div-->
+  <br style="clear: both;">
+</div>
+
+
+<!--  div used by Facebook SDK on initialization  -->
+
+<!--div id="fb-root" class=" fb_reset">
+  <div style="position: absolute; top: -10000px; height: 0px; width: 0px;">
+    <div>
+      <iframe name="f2fecb9b04bc73c" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" allow="encrypted-media" src="static/disco/ping.html" style="display: none;">
+      </iframe>
+    </div>
+  </div>
+  <div style="position: absolute; top: -10000px; height: 0px; width: 0px;">
+    <div>
+      <iframe name="fb_xdm_frame_https" frameborder="0" allowtransparency="true" allowfullscreen="true" scrolling="no" allow="encrypted-media" id="fb_xdm_frame_https" aria-hidden="true" title="Facebook Cross Domain Communication Frame" tabindex="-1" src="static/disco/mp2v3DK3INU.html" style="border: none;"></iframe>
+    </div>
+  </div>
+</div-->
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <h3 class="panel-title">Notes</h3>
+    </div>
+    <div class="panel-body">
+        <ul>
+            <li>The maximum file size for uploads in this demo is <strong>50 MB</strong> (default file size is unlimited).</li>
+            <li>Only delimited data files (<strong>csv, json</strong>) are allowed in this website.</li>
+            <li>You can <strong>drag &amp; drop</strong> files from your desktop on this webpage.</li>
+        </ul>
+    </div>
+</div>
+<p></p>
+<div id="tweet_force_nodes" style="height:100px; width:100px">
+<div id="tweet_force_links" style="height:100px; width:100px">
+</div>
+
+
+<!-- Start of google analytics code -->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<!--script async="" src="static/disco/js"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-7781797-1');
+</script-->
+<!-- End of google analytics code -->
+
+<!--
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-7781797-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+-->
+
+<!--  LocalWords:  ui ffffff qtip dataTable dbe tbl nowrap Heatmap TF
+      LocalWords:  IDF px moz rgba webkit datepicker Timeline
+ -->
+<div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front dialog-drop-shadow ui-dialog-buttons ui-draggable" tabindex="-1" role="dialog" aria-describedby="alert-dlg" aria-labelledby="ui-id-10" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span id="ui-id-10" class="ui-dialog-title">Alert</span><button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" aria-disabled="false" title="close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">close</span></button></div><div id="alert-dlg" class="ui-dialog-content ui-widget-content" style="display: block;"><div><table><tbody><tr style="vertical-align: middle;"><td width="35px" style="padding-left: 1em; padding-right: 1em;"><span id="alert-icon" class="fa fa-warning fa-2x" style="color: rgb(46, 110, 158);"></span></td><td style="font-weight: bold; font-size: 1.2em;"><span id="alert-msg"></span></td></tr><tr><td colspan="2" style="font-weight: normal; padding-top: 1em;"><span id="alert-info"></span></td></tr></tbody></table></div></div><div class="ui-dialog-buttonpane ui-widget-content ui-helper-clearfix"><div class="ui-dialog-buttonset"><button type="button" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">OK</span></button></div></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front dialog-drop-shadow ui-draggable ui-resizable" tabindex="-1" role="dialog" aria-describedby="ui-id-11" aria-labelledby="ui-id-12" style="display: none; position: absolute;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span id="ui-id-12" class="ui-dialog-title">Query Twitter</span><button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" aria-disabled="false" title="close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">close</span></button></div><div id="ui-id-11" class="ui-dialog-content ui-widget-content" style="display: block;"><p id="prog-msg">Loading tweets...</p><div id="prog-bar" class="ui-progressbar ui-widget ui-widget-content ui-corner-all" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="ui-progressbar-value ui-widget-header ui-corner-left" style="display: none; width: 0%;"></div></div></div><div class="ui-resizable-handle ui-resizable-n" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-e" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-s" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-w" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-se ui-icon ui-icon-gripsmall-diagonal-se" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-sw" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-ne" style="z-index: 90;"></div><div class="ui-resizable-handle ui-resizable-nw" style="z-index: 90;"></div></div><div class="ui-dialog ui-widget ui-widget-content ui-corner-all ui-front ui-draggable" tabindex="-1" role="dialog" aria-describedby="div-zoom" aria-labelledby="ui-id-13" style="display: none;"><div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix"><span id="ui-id-13" class="ui-dialog-title">Zoom Lens</span><button class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only ui-dialog-titlebar-close" role="button" aria-disabled="false" title="close"><span class="ui-button-icon-primary ui-icon ui-icon-closethick"></span><span class="ui-button-text">close</span></button></div><div id="div-zoom" class="ui-dialog-content ui-widget-content" style="display: block; border: 0px; padding: 0px;"><canvas id="zoom-canvas"></canvas><div id="canvas-zoom" style="position:absolute; top:5px; left:5px" class="ui-buttonset"><input type="radio" id="canvas-zoom-1" name="canvas-zoom" checked="checked" class="ui-helper-hidden-accessible"><label for="canvas-zoom-1" class="ui-state-active ui-button ui-widget ui-state-default ui-button-text-only ui-corner-left" role="button" aria-disabled="false"><span class="ui-button-text">2x</span></label><input type="radio" id="canvas-zoom-2" name="canvas-zoom" class="ui-helper-hidden-accessible"><label for="canvas-zoom-2" class="ui-button ui-widget ui-state-default ui-button-text-only ui-corner-right" role="button" aria-disabled="false"><span class="ui-button-text">4x</span></label></div></div></div>
+<!--script type="text/javascript" src="static/disco/js(1)"></script-->
+</body></html>
